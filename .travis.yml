@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t samueloliva/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run samueloliva/react-test npm test -- --coverage
+
+after_sucess:
+  - docker build -t samueloliva/multi-client ./client
+  - docker build -t samueloliva/multi-nginx ./nginx
+  - docker build -t samueloliva/multi-server ./server
+  - docker build -t samueloliva/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "&DOCKER_ID" --password-stdin
+  # take those images and push them to dockerhub
+  - docker push samueloliva/multi-client
+  - docker push samueloliva/multi-nginx
+  - docker push samueloliva/multi-server
+  - docker push samueloliva/multi-worker
+
